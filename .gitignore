@@ -1,0 +1,11 @@
+*.py[cod]
+__pycache__
+
+# Sphinx
+docs/_build
+
+.idea
+
+guanoeditor_venv
+guanomdeditor/gui/build
+guanomdeditor/gui/dist
