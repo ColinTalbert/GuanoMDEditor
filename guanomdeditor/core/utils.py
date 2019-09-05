@@ -51,11 +51,15 @@ import sys
 import os
 import traceback
 import pkg_resources
+import re
 
 try:
     from urllib.parse import urlparse
 except:
     from urlparse import urlparse
+
+from pathlib import Path
+from datetime import datetime, timedelta
 
 import pandas as pd
 
@@ -64,10 +68,7 @@ from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtWidgets import QPlainTextEdit
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QComboBox
-from PyQt5.QtCore import QAbstractTableModel
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QBrush
-from PyQt5.QtGui import QColor
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSettings
 
@@ -134,21 +135,26 @@ def launch_widget(Widget, title="", **kwargs):
         print(traceback.format_exc())
 
 
-def get_resource_path(fname):
-    """
-
-    Parameters
-    ----------
-    fname : str
-            filename that you would like to find
-
-    Returns
-    -------
-            the full file path to the resource specified
-    """
-    return pkg_resources.resource_filename('guanoeditor',
-                                           'resources/{}'.format(fname))
-
+# def get_resource_path(fname):
+#     """
+#
+#     Parameters
+#     ----------
+#     fname : str
+#             filename that you would like to find
+#
+#     Returns
+#     -------
+#             the full file path to the resource specified
+#     """
+#
+#     if getattr(sys, 'frozen') and hasattr(sys, '_MEIPASS'):
+#
+#         return pkg_resources.resource_filename('guanoeditor',
+#                                                'DATA/{}'.format(fname))
+#     else:
+#         return pkg_resources.resource_filename('guanoeditor',
+#                                                'resources/{}'.format(fname))
 
 def set_window_icon(widget, remove_help=True):
     """
@@ -196,8 +202,10 @@ def get_setting(which, default=None):
 
 def resource_path(relative_path):
     if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, relative_path)
-    return os.path.join(os.path.abspath('.'), relative_path)
+        relative_path = relative_path.split('/')[-1]
+        return os.path.join(sys._MEIPASS, f"DATA/{relative_path}")
+    else:
+        return os.path.join(os.path.abspath('.'), relative_path)
 
 
 def read_namespace(fname):
@@ -214,3 +222,26 @@ def read_namespace(fname):
 
     return namespace_dict
 
+
+def clean_name(fname):
+    if isinstance(fname, Path):
+        fname = str(fname)
+
+    f = Path(fname)
+    name = f.stem
+    extension = f.suffix
+
+    # Step 1: remove anything in square brackets
+    name = re.sub("\[.*\]", '', name)
+    # Step 2: replace any non word characters with underscores
+    name = re.sub("\W", '_', name)
+    # Step 3: replace multiple underscores with a single
+    name = re.sub("_+", '_', name)
+    # Step 4: replace underscore separated single digits
+    name = re.sub("_[0-9]_", '_', name)
+    # Step 5: remove non digit characters at the begining of the file
+    name = re.sub("^\D+", '', name)
+    # Step 6: remove trailing _000, _001, _005, _0001 etc.
+    name = re.sub("_[0-9]{3,4}$", '', name)
+
+    return name + extension
