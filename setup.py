@@ -20,7 +20,8 @@ with open("LICENSE") as license_file:
 requirements = [
     "pandas",
 	"pyqt>=5.6.0",
-	"guanopy"
+	"guanopy",
+    "nabatpy"
 ]
 
 test_requirements = [
